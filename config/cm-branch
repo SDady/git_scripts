@@ -1,0 +1,76 @@
+#!/bin/bash
+typeset _VERSION=1.0
+#    Creates a branch and pushes it to origin	
+#    Copyright (C) 2015 Shawn Dady https://github.com/SDady/git_scripts
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+readonly ScriptName=${0##*/}
+
+function usage
+{
+	cat <<-HELP
+	Usage: ${ScriptName} <branch>
+	Valid v${_VERSION} options:
+		-h		display help
+		<branch>	Name of the new branch
+
+	Create a branch and push it to origin. Also, set upstream for the branch.
+	HELP
+	exit ${ErrBad}
+}
+
+trap '>&2 echo ****break**** && exit 1;' HUP INT QUIT TERM
+
+typeset name="";
+
+#process command-line parameters
+#
+while [[ -n ${1} ]]
+do
+	case ${1} in
+	-h*|-\?)	#help
+		usage
+		;;
+	*)	#default
+		name=${1}
+		;;
+	esac
+	shift
+done
+if [ "$name" == "" ]; then
+	usage
+fi
+logexit "${name}"
+
+git branch $name 2>/dev/null
+if [ ! "$?" = "0" ]; then
+	echo "Checking remote..."
+else 
+	echo "Created a branch called $name. Now pushing it..."
+fi
+
+git checkout $name
+
+git push origin $name
+
+if [ ! "$?" = "0" ]; then
+	exit 1
+else
+	echo "Pushed a branch called $name."	
+fi
+
+#set the up stream
+git branch --set-upstream-to=origin/$name
+

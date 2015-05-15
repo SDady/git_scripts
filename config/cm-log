@@ -1,0 +1,87 @@
+#!/bin/bash
+#!/bin/bash
+typeset _VERSION=1.0
+#    Used to show the log of a repo 
+#
+#    Copyright (C) 2015 Shawn Dady https://github.com/SDady/git_scripts
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+function usage
+{
+	cat <<-HELP
+	Usage: ${ScriptName} [options]
+	Valid v${_VERSION} options:
+		-h		display help
+		-d		show only commits where files were deleted
+		-r		revision range
+		-f		follow file
+		-s		short view
+
+	Used to show what has changed and log of commits.
+	HELP
+	exit ${ErrBad}
+}
+
+trap '>&2 echo ****break**** && exit 1;' HUP INT QUIT TERM
+
+typeset name=""			#files name
+typeset short=false		#show short log
+typeset extra			#used for the more args
+#process command-line parameters
+#
+while [[ -n ${1} ]]
+do
+	case ${1} in
+	-h*|-\?)	#help
+		usage
+		;;
+	-s)		#short
+		short=true
+		extra="--all"
+		;;
+	-d)		#deleted
+		extra="--all --diff-filter=D"
+		break
+		;;
+	-r)		#revision range
+		
+		extra="${2}"
+		echo -----------------
+		echo Revision Range ${2}
+		echo -----------------
+		shift
+		break
+		;;
+	-f)		#follow file
+		extra="--all --follow -- ${2}"
+		echo -----------------
+		echo Following ${2}
+		echo -----------------
+		shift
+		;;
+	*)	#default
+		usage
+		;;
+	esac
+	shift
+done
+
+logd "$extra"
+
+if [ $short != true ]; then
+	git log --pretty=format:"%Cgreen%cd (%cr) %Creset[%cn] %Cred%d %n%C(yellow)[%h] %Cblue%s" --decorate --date=short --name-only $extra
+else
+	git log --oneline --decorate --graph $extra
+fi

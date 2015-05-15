@@ -1,0 +1,110 @@
+#!/bin/bash
+typeset _VERSION=1.0
+#    Commits changed files to a git repo then pushes to the remote.
+#
+#    Copyright (C) 2015 Shawn Dady https://github.com/SDady/git_scripts
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+function usage
+{
+	cat <<-HELP
+	Usage: ${ScriptName} -m <message> [files ... | .]
+	Valid v${_VERSION} options:
+		-h		display help
+		-m		The commit message
+		files		List of files or '.' or '' to add all changes
+
+	HELP
+	exit ${ErrBad}
+}
+
+trap '>&2 echo ****break**** && exit 1;' HUP INT QUIT TERM
+
+if [ $# == 0 ]; then
+	usage
+fi
+
+typeset message=""
+typeset files
+
+#process command-line parameters
+#
+while [[ -n ${1} ]]
+do
+	case ${1} in
+	-h*|-\?)	#help
+		usage
+		;;
+	-m)		#message
+		message=${2:?Expected message.}
+		shift
+		;;
+	*)		#must be a file name
+		files="$files '$1' "
+		;;
+	esac
+	shift
+done
+
+if [ "$message" == "" ]; then
+ 	usage;
+fi
+
+echo ----------------------------
+echo "Adding..."
+echo ----------------------------
+
+git add ${files="."}
+if [ "$?" != "0" ]; then
+	exit $?; 
+fi
+
+#display the status
+echo ----------------------------
+echo "Status"
+echo ----------------------------
+
+git status -u -s
+
+echo
+echo ----------------------------
+echo "Commiting..."
+echo ----------------------------
+
+git commit -m "$message"
+if [ "$?" != "0" ]; then
+	echo "Error commiting"
+	exit $?; 
+fi
+
+echo
+echo ----------------------------
+echo "Pulling from origin..."
+echo ----------------------------
+git pull origin
+if [ "$?" != "0" ]; then
+	echo "Cannot pull from origin. May need to merge"
+	exit $?; 
+fi
+
+echo 
+echo ----------------------------
+echo "Pushing to origin..."
+echo ----------------------------
+git push origin
+if [ "$?" != "0" ]; then
+	echo "Error pushing"
+	exit $?; 
+fi
