@@ -52,7 +52,6 @@ done
 if [ "$name" == "" ]; then
 	usage
 fi
-logexit "${name}"
 
 git branch $name 2>/dev/null
 if [ ! "$?" = "0" ]; then
