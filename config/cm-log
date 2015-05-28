@@ -37,7 +37,7 @@ trap '>&2 echo ****break**** && exit 1;' HUP INT QUIT TERM
 
 typeset name=""			#files name
 typeset short=false		#show short log
-typeset extra			#used for the more args
+typeset extra="--all"			#used for the more args
 #process command-line parameters
 #
 while [[ -n ${1} ]]
