@@ -80,5 +80,5 @@ done
 if [ $short != true ]; then
 	git log --pretty=format:"%Cgreen%cd (%cr) %Creset[%cn] %Cred%d %n%C(yellow)[%h] %Cblue%s" --decorate --date=short --name-only $extra
 else
-	git log --oneline --decorate --graph $extra
+	git log --pretty=format:"%Cgreen (%cr) %Creset[%cn] %Cred%d %C(yellow)[%h] %Cblue%s" --decorate --date=short --graph $extra
 fi
